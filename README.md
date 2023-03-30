@@ -13,4 +13,3 @@
 >>> log.warnings
 []
 ```
- 
