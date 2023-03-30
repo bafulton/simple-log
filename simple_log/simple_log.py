@@ -40,7 +40,7 @@ class ListHandler(Handler):
 
 def create_simple_log(logger: Logger) -> SimpleLog:
     if logger.hasHandlers():
-        # warn that logging may still occur?
+        # TODO: warn that logging may still occur?
         raise Exception('Logger already has handler(s)')
 
     handler = ListHandler()
