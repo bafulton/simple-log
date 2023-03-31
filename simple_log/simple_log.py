@@ -44,6 +44,13 @@ class ListHandler(Handler):
         self.log.append(record)
 
 
+def add_log_to_logger(name: str) -> SimpleLog:
+    logger = logging.getLogger(name)
+    list_handler = ListHandler()
+    logger.addHandler(list_handler)
+    return list_handler.log
+
+
 @contextmanager
 def redirect_logger_to_log(name: str) -> SimpleLog:
     logger = logging.getLogger(name)
