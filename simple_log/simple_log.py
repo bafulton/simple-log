@@ -38,7 +38,7 @@ class ListHandler(Handler):
         self.log.append(record)
 
 
-def capture_logging(logger: Logger) -> SimpleLog:
+def create_simple_log(logger: Logger) -> SimpleLog:
     if any([not isinstance(h, ListHandler) for h in logger.handlers]):
         logger.warn(
             'Logger has other handlers than ListHandler;'
