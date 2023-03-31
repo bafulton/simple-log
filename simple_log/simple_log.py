@@ -1,30 +1,32 @@
+from contextlib import contextmanager
 import logging
-from logging import Handler, Logger, LogRecord
+from logging import Handler, LogRecord
 
 
 class SimpleLog(list[LogRecord]):
-    def _filter(self, level: int) -> list[LogRecord]:
+    def _get_for_level(self, level: int) -> list[LogRecord]:
+        # TODO: store each level's item indices for faster list generation
         return [r for r in self if r.levelno == level]
 
     @property
     def debugs(self) -> list[LogRecord]:
-        return self._filter(logging.DEBUG)
+        return self._get_for_level(logging.DEBUG)
 
     @property
     def infos(self) -> list[LogRecord]:
-        return self._filter(logging.INFO)
+        return self._get_for_level(logging.INFO)
 
     @property
     def warnings(self) -> list[LogRecord]:
-        return self._filter(logging.WARNING)
+        return self._get_for_level(logging.WARNING)
 
     @property
     def errors(self) -> list[LogRecord]:
-        return self._filter(logging.ERROR)
+        return self._get_for_level(logging.ERROR)
 
     @property
     def criticals(self) -> list[LogRecord]:
-        return self._filter(logging.CRITICAL)
+        return self._get_for_level(logging.CRITICAL)
 
 
 class ListHandler(Handler):
@@ -32,19 +34,36 @@ class ListHandler(Handler):
 
     def __init__(self) -> None:
         self.log = SimpleLog()
-        super().__init__()
+        super().__init__(logging.NOTSET)
 
     def emit(self, record: LogRecord) -> None:
+        # TODO: handle multithreading/multiprocessing (see todo in README)
+
+        # store the formatted message on the record
+        record.msg_formatted = self.format(record)
         self.log.append(record)
 
 
-def create_simple_log(logger: Logger) -> SimpleLog:
-    if any([not isinstance(h, ListHandler) for h in logger.handlers]):
-        logger.warn(
-            'Logger has other handlers than ListHandler;'
-            ' logging may still be emitted.'
-        )
+@contextmanager
+def redirect_logger_to_log(name: str) -> SimpleLog:
+    logger = logging.getLogger(name)
+    original_handlers = logger.handlers
+    original_propagate = logger.propagate
 
-    handler = ListHandler()
-    logger.addHandler(handler)
-    return handler.log
+    list_handler = ListHandler()
+    if root_handlers := logging.root.handlers:
+        list_handler.formatter = root_handlers[0].formatter
+
+    try:
+        for handler in original_handlers:
+            logger.removeHandler(handler)
+        logger.addHandler(list_handler)
+        logger.propagate = False
+
+        yield list_handler.log
+
+    finally:
+        logger.propagate = original_propagate
+        logger.removeHandler(list_handler)
+        for handler in original_handlers:
+            logger.addHandler(handler)
