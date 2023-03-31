@@ -45,6 +45,9 @@ class ListHandler(Handler):
 
 
 def add_log_to_logger(name: str) -> SimpleLog:
+    # TODO: Does this make sense? Document usage if so. Main concern is that
+    #  it might make more sense to pass in a logger instead of name, but then
+    #  it's not consistent with redirect_logger_to_log. Does that matter?
     logger = logging.getLogger(name)
     list_handler = ListHandler()
     logger.addHandler(list_handler)
