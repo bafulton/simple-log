@@ -52,6 +52,9 @@ assert len(log.warnings) == 1
   code and logging the output to a list is thread-specific. We're setting certain parameters (eg,
   pretending we're far in the future) in a specific thread, and we need the results of _that_
   _thread_. Look into best practices for thread- and process-specific logging.
+- [ ] In `SimpleLog`, store each logging level's item indices for faster list generation. The
+  indices would break if an item were ever removed from the `SimpleLog`, making it slightly less
+  list-like. Needs more thought.
 - [ ] Flesh out documentation.
 - [ ] Add unit tests and CI.
 - [ ] Put on pypi.
